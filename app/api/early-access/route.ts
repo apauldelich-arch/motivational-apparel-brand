@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Early access is unavailable." }, { status: 503 });
   }
 
-  let body: { first_name?: unknown; email?: unknown; selected_reminder?: unknown; custom_message?: unknown };
+  let body: { first_name?: unknown; email?: unknown; selected_reminder?: unknown; custom_message?: unknown; marketing_consent?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -23,8 +23,9 @@ export async function POST(request: Request) {
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const selectedReminder = typeof body.selected_reminder === "string" ? body.selected_reminder : "";
   const customMessage = typeof body.custom_message === "string" ? body.custom_message.trim() : "";
+  const marketingConsent = body.marketing_consent === true;
 
-  if (!firstName || firstName.length > 80 || !emailPattern.test(email) || email.length > 254 || customMessage.length > 240 || !reminders.some((reminder) => reminder === selectedReminder)) {
+  if (!firstName || firstName.length > 80 || !emailPattern.test(email) || email.length > 254 || customMessage.length > 240 || !marketingConsent || !reminders.some((reminder) => reminder === selectedReminder)) {
     return NextResponse.json({ error: "Please enter valid details." }, { status: 400 });
   }
 
@@ -40,7 +41,9 @@ export async function POST(request: Request) {
       first_name: firstName,
       email,
       selected_reminder: selectedReminder,
-      custom_message: customMessage || null
+      custom_message: customMessage || null,
+      marketing_consent: true,
+      marketing_consent_at: new Date().toISOString()
     })
   });
 
