@@ -33,7 +33,7 @@ export default function Home() {
     <section id="top" className="hero">
       <div className="hero-photo"><Image src="/images/remember-why-you-started-hero.png" alt="Athlete wearing a DELITE glove with a personal reminder" fill priority sizes="100vw" /></div>
       <div className="hero-shade" />
-      <div className="hero-copy"><p className="eyebrow">DELITE / WEAR YOUR MINDSET</p><h1>WHEN IT<br />GETS HARD,<br /><em>KEEP GOING.</em></h1><p>Gym gloves for high-performance people, with the message you need to read when the work gets hard.</p><button className="button button-gold" onClick={() => scrollTo("reminders")}>Find your message <ArrowRight size={16} /></button></div>
+      <div className="hero-copy"><p className="eyebrow">DELITE / WEAR YOUR MINDSET</p><h1>YOU KNOW WHY<br />YOU STARTED.<br /><em>DON&apos;T STOP NOW.</em></h1><p>For the moments when you&apos;re tired, doubting yourself or ready to stop. A reminder on your gloves to help you find the strength to keep going.</p><button className="button button-gold" onClick={() => scrollTo("reminders")}>Find your message <ArrowRight size={16} /></button></div>
       <button className="scroll-cue" onClick={() => scrollTo("why")}>Discover DELITE <ArrowDown size={15} /></button>
     </section>
 
