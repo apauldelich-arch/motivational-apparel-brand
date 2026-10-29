@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Early access is unavailable." }, { status: 503 });
   }
 
-  let body: { first_name?: unknown; email?: unknown; selected_reminder?: unknown };
+  let body: { first_name?: unknown; email?: unknown; selected_reminder?: unknown; custom_message?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -22,8 +22,9 @@ export async function POST(request: Request) {
   const firstName = typeof body.first_name === "string" ? body.first_name.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const selectedReminder = typeof body.selected_reminder === "string" ? body.selected_reminder : "";
+  const customMessage = typeof body.custom_message === "string" ? body.custom_message.trim() : "";
 
-  if (!firstName || firstName.length > 80 || !emailPattern.test(email) || email.length > 254 || !reminders.some((reminder) => reminder === selectedReminder)) {
+  if (!firstName || firstName.length > 80 || !emailPattern.test(email) || email.length > 254 || customMessage.length > 240 || !reminders.some((reminder) => reminder === selectedReminder)) {
     return NextResponse.json({ error: "Please enter valid details." }, { status: 400 });
   }
 
@@ -38,7 +39,8 @@ export async function POST(request: Request) {
     body: JSON.stringify({
       first_name: firstName,
       email,
-      selected_reminder: selectedReminder
+      selected_reminder: selectedReminder,
+      custom_message: customMessage || null
     })
   });
 
@@ -56,7 +58,7 @@ export async function POST(request: Request) {
       from: process.env.RESEND_FROM_EMAIL || "DELITE <onboarding@resend.dev>",
       to: [process.env.EARLY_ACCESS_NOTIFICATION_EMAIL || "apauldelich@gmail.com"],
       subject: `New DELITE early-access request — ${firstName}`,
-      html: `<h1>New DELITE early-access request</h1><p><strong>Name:</strong> ${escapeHtml(firstName)}</p><p><strong>Email:</strong> ${escapeHtml(email)}</p><p><strong>Selected reminder:</strong> ${escapeHtml(selectedReminder)}</p>`
+      html: `<h1>New DELITE early-access request</h1><p><strong>Name:</strong> ${escapeHtml(firstName)}</p><p><strong>Email:</strong> ${escapeHtml(email)}</p><p><strong>Selected reminder:</strong> ${escapeHtml(selectedReminder)}</p>${customMessage ? `<p><strong>Custom message:</strong> ${escapeHtml(customMessage)}</p>` : ""}`
     })
   });
 
