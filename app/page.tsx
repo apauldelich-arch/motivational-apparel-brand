@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { ArrowDown, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { reminders } from "./data";
 
 const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -22,7 +22,46 @@ const gloveImages: Record<string, string> = {
 
 export default function Home() {
   const [selected, setSelected] = useState(reminders.length - 1);
+  const [firstName, setFirstName] = useState("");
+  const [email, setEmail] = useState("");
+  const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const phrase = reminders[selected];
+
+  const submitEarlyAccess = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormStatus("submitting");
+
+    const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    if (!projectUrl || !publishableKey) {
+      setFormStatus("error");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${projectUrl}/rest/v1/delite_early_access`, {
+        method: "POST",
+        headers: {
+          apikey: publishableKey,
+          Authorization: `Bearer ${publishableKey}`,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal"
+        },
+        body: JSON.stringify({
+          first_name: firstName.trim(),
+          email: email.trim().toLowerCase(),
+          selected_reminder: phrase
+        })
+      });
+
+      if (!response.ok) throw new Error("Unable to submit early access");
+      setFormStatus("success");
+      setFirstName("");
+      setEmail("");
+    } catch {
+      setFormStatus("error");
+    }
+  };
 
   return <main>
     <header className="site-header">
@@ -47,7 +86,7 @@ export default function Home() {
 
     <section id="reminders" className="reminder-section"><div className="selector-intro"><div className="selector-heading"><div className="section-label">03 / CHOOSE YOUR REMINDER</div><h2>CONTROL YOUR<br /><em>INNER VOICE.</em></h2></div></div><div className="selector-layout"><div><div className="phrase-list" role="listbox" aria-label="Choose a reminder">{reminders.map((item, index) => <button key={item} role="option" aria-selected={selected === index} onClick={() => setSelected(index)}><span>{String(index + 1).padStart(2, "0")}</span>{item}</button>)}</div><p className="custom-message-prompt">HAVE YOUR OWN MESSAGE?<span>WE CAN CUSTOMISE IT FOR YOU.</span></p></div><div className="glove-preview"><Image src={gloveImages[phrase]} alt={`Black glove preview: ${phrase}`} fill sizes="(max-width: 760px) 100vw, 50vw" /><span className="preview-tag">DELITE / GLOVE CONCEPT</span></div></div><button className="button button-outline continue" onClick={() => scrollTo("early-access")}>Continue with this reminder <ArrowRight size={16} /></button></section>
 
-    <section id="early-access" className="access-section"><div className="access-copy"><div className="section-label">04 / EARLY ACCESS</div><h2>BE PART OF<br />THE <em>BEGINNING.</em></h2><p>We&apos;re building something for people who refuse to give up on themselves.</p><p>Choose the reminder that speaks to you. Help shape our first DELITE collection and be among the first to know when it launches.</p></div><form aria-label="Early access coming soon"><div className="selected-reminder"><span>YOUR SELECTED REMINDER</span><strong>{phrase}</strong><small>DELITE / GYM GLOVES</small></div><label>First name<input disabled placeholder="Coming soon" /></label><label>Email address<input disabled type="email" placeholder="Coming soon" /></label><button className="button button-disabled" type="button" disabled>Early access coming soon</button><p className="coming-soon">Registration is not live yet. Your details and selected reminder will not be collected or stored.</p></form></section>
+    <section id="early-access" className="access-section"><div className="access-copy"><div className="section-label">04 / EARLY ACCESS</div><h2>BE PART OF<br />THE <em>BEGINNING.</em></h2><p>We&apos;re building something for people who refuse to give up on themselves.</p><p>Choose the reminder that speaks to you. Help shape our first DELITE collection and be among the first to know when it launches.</p></div><form aria-label="Get early access" onSubmit={submitEarlyAccess}><div className="selected-reminder"><span>YOUR SELECTED REMINDER</span><strong>{phrase}</strong><small>DELITE / GYM GLOVES</small></div><label>First name<input value={firstName} onChange={(event) => setFirstName(event.target.value)} autoComplete="given-name" required maxLength={80} placeholder="Your first name" /></label><label>Email address<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" required maxLength={254} placeholder="you@example.com" /></label><button className="button button-gold" type="submit" disabled={formStatus === "submitting"}>{formStatus === "submitting" ? "Joining..." : "Get early access"}</button>{formStatus === "success" && <p className="form-message success" role="status">You&apos;re on the list. We&apos;ll be in touch when DELITE launches.</p>}{formStatus === "error" && <p className="form-message error" role="alert">We couldn&apos;t save your details. Please try again.</p>}</form></section>
 
     <footer><span className="footer-logo"><Image src="/images/delite-mountain-mindset-logo-cropped.png" alt="DELITE Wear Your Mindset" fill sizes="180px" /></span><div className="footer-statement"><span>DELITE / WEAR YOUR MINDSET.</span><strong>DESIGNED FOR<br /><em>HIGH-PERFORMANCE PEOPLE.</em></strong><small className="footer-meta">© 2026. Based in London. Available worldwide.</small></div></footer>
   </main>;
