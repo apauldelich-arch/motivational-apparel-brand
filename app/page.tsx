@@ -31,21 +31,11 @@ export default function Home() {
     event.preventDefault();
     setFormStatus("submitting");
 
-    const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-    if (!projectUrl || !publishableKey) {
-      setFormStatus("error");
-      return;
-    }
-
     try {
-      const response = await fetch(`${projectUrl}/rest/v1/delite_early_access`, {
+      const response = await fetch("/api/early-access", {
         method: "POST",
         headers: {
-          apikey: publishableKey,
-          Authorization: `Bearer ${publishableKey}`,
           "Content-Type": "application/json",
-          Prefer: "return=minimal"
         },
         body: JSON.stringify({
           first_name: firstName.trim(),
